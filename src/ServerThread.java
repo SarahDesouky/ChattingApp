@@ -108,24 +108,37 @@ public class ServerThread extends Thread {
 				notAName = true;
 			}
 			while(!join) {
+				
+			//if connection is being established between two servers and the message i received was preceded with a slash
+			//then it was coming from the other server, in this case the join is true and the message i recieved 
+			// is not the name of a client connecting to my server
+			//unless i have this condition, i will never be able to satisfy if(join) condition for a server-server connection
+			//this is the only way to set join to true if it's not a client first sending a name to this server
+			
+				
 				if(!clientExists(message)) {
 					clientnames.add(message);
 					clientsockets.add(socket);
 					ServeroutToClient.writeBytes("Client: " + message + " Successfully joined." + '\n');
 					join = true;
 				}
+				// as long as i haven't joined which is the default state, I will try to add the name the client is sending me 
+				//to the list of client names on my server and also add the client socket, i then set join to true;
 				else {
 					ServeroutToClient.writeBytes(message + " is an already existing name." + '\n');
 				}
 			}
 			if(join) {
 				while(true) {
-
+					//is entered only once the first time after a server-server connection is established
+					//and then notAName is set to false
 					if(notAName) {
 						message = removeSlash(message);
 						clientSentence =  message;
 						notAName = false;
 					}
+					//I always remove slash regardless, whether it was from clients to clients on the same server
+					//or clients on different servers which is when  i add a slash in the first place
 					else {
 						clientSentence = removeSlash(inFromClient.readLine());
 					}
